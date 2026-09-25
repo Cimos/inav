@@ -49,14 +49,27 @@
 
 // *************** Gyro & ACC **********************
 
+// Two MPU6500-family footprints on SPI1, as in the Betaflight JBF7 config.
+// The fitted chip (ICM20602) is on CS PC3 and stays gyro_to_use = 0.
+// The PA15 footprint is gyro_to_use = 1.
+#define USE_TARGET_IMU_HARDWARE_DESCRIPTORS
+#define USE_DUAL_GYRO
+
 #define USE_IMU_MPU6500
-#define MPU6500_SPI_BUS             BUS_SPI1
-#define MPU6500_CS_PIN              PC3
-#define IMU_MPU6500_ALIGN           CW90_DEG
+#define MPU6500_1_SPI_BUS           BUS_SPI1
+#define MPU6500_1_CS_PIN            PC3
+#define MPU6500_1_EXTI_PIN          PB2
+#define IMU_MPU6500_1_ALIGN         CW90_DEG
+
+#define MPU6500_2_SPI_BUS           BUS_SPI1
+#define MPU6500_2_CS_PIN            PA15
+#define MPU6500_2_EXTI_PIN          PA8
+#define IMU_MPU6500_2_ALIGN         CW0_DEG
 
 // *************** I2C/Baro/Mag *********************
 #define USE_I2C
 #define USE_I2C_DEVICE_2
+#define I2C_DEVICE_2_SHARES_UART3           // I2C2 and UART3 share the TX3/RX3 pads
 #define I2C2_SCL                    PB10    // SCL pad TX3
 #define I2C2_SDA                    PB11    // SDA pad RX3
 
@@ -66,6 +79,8 @@
 
 #define USE_MAG
 #define USE_MAG_ALL
+#define MAG_I2C_BUS                 BUS_I2C2
+#define MAG_I2C_BUS                 BUS_I2C2
 
 // *************** SD Card **************************
 #define USE_SDCARD
@@ -86,22 +101,6 @@
 #define M25P16_SPI_BUS              BUS_SPI3
 #define M25P16_CS_PIN               PB9
 
-#define USE_FLASH_W25M
-#define W25M_SPI_BUS                BUS_SPI3
-#define W25M_CS_PIN                 PB9
-
-#define USE_FLASH_W25M02G
-#define W25M02G_SPI_BUS             BUS_SPI3
-#define W25M02G_CS_PIN              PB9
-
-#define USE_FLASH_W25M512
-#define W25M512_SPI_BUS             BUS_SPI3
-#define W25M512_CS_PIN              PB9
-
-#define USE_FLASH_W25N01G
-#define W25N01G_SPI_BUS             BUS_SPI3
-#define W25N01G_CS_PIN              PB9
-
 // *************** PINIO ***************************
 #define USE_PINIO
 #define USE_PINIOBOX
@@ -118,19 +117,19 @@
 #define UART1_RX_PIN                PA10
 #define UART1_TX_PIN                PA9
 
-#define USE_UART2   
+#define USE_UART2
 #define UART2_RX_PIN                PA3
 #define UART2_TX_PIN                PA2
 
-#define USE_UART3   
+#define USE_UART3
 #define UART3_RX_PIN                PB11
 #define UART3_TX_PIN                PB10
 
-#define USE_UART4   
+#define USE_UART4
 #define UART4_RX_PIN                PC11
 #define UART4_TX_PIN                PC10
 
-#define USE_UART5   
+#define USE_UART5
 #define UART5_RX_PIN                PD2
 #define UART5_TX_PIN                PC12
 
@@ -138,19 +137,20 @@
 
 #define DEFAULT_RX_TYPE             RX_TYPE_SERIAL
 #define SERIALRX_PROVIDER           SERIALRX_CRSF
+#define SERIALRX_UART               SERIAL_PORT_USART1
 
 // *************** ADC *****************************
 #define USE_ADC
 #define ADC_INSTANCE                ADC1
 #define ADC_CHANNEL_1_PIN           PC1
 #define ADC_CHANNEL_2_PIN           PC2
-#define ADC_CHANNEL_3_PIN           PC0 
+#define ADC_CHANNEL_3_PIN           PC0
 
 #define VBAT_ADC_CHANNEL            ADC_CHN_1
 #define CURRENT_METER_ADC_CHANNEL   ADC_CHN_2
 #define RSSI_ADC_CHANNEL            ADC_CHN_3
 
-#define VOLTAGE_METER_SCALE         110
+#define VBAT_SCALE_DEFAULT          1100
 #define CURRENT_METER_SCALE         100
 
 #define USE_LED_STRIP
@@ -159,12 +159,10 @@
 #define TARGET_IO_PORTA             0xffff
 #define TARGET_IO_PORTB             0xffff
 #define TARGET_IO_PORTC             0xffff
-#define TARGET_IO_PORTD             0xffff
-#define TARGET_IO_PORTE             0xffff
-#define TARGET_IO_PORTF             0xffff
+#define TARGET_IO_PORTD             (BIT(2))
 
 #define MAX_PWM_OUTPUT_PORTS        8
-#define TARGET_MOTOR_COUNT          4           
+#define TARGET_MOTOR_COUNT          8
 #define USE_DSHOT
 #define USE_ESC_SENSOR
 #define USE_SERIAL_4WAY_BLHELI_INTERFACE

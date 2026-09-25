@@ -137,7 +137,7 @@
 
 #define DEFAULT_RX_TYPE             RX_TYPE_SERIAL
 #define SERIALRX_PROVIDER           SERIALRX_CRSF
-#define SERIALRX_UART               SERIAL_PORT_USART1
+#define SERIALRX_UART               SERIAL_PORT_USART2
 
 // *************** ADC *****************************
 #define USE_ADC

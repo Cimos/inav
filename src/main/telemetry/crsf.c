@@ -457,6 +457,63 @@ static void crsfFrameAttitude(sbuf_t *dst)
 Payload:
 char[]      Flight mode ( Null­terminated string )
 */
+static const char *crsfArmingDisabledReasonCode(void)
+{
+    if (ARMING_FLAG(ARMING_DISABLED_FAILSAFE_SYSTEM | ARMING_DISABLED_BOXFAILSAFE)) {
+        return "FS";
+    } else if (ARMING_FLAG(ARMING_DISABLED_RC_LINK)) {
+        return "RC";
+    } else if (ARMING_FLAG(ARMING_DISABLED_HARDWARE_FAILURE)) {
+        return "HW";
+    } else if (ARMING_FLAG(ARMING_DISABLED_INVALID_SETTING)) {
+        return "SET";
+    } else if (ARMING_FLAG(ARMING_DISABLED_PWM_OUTPUT_ERROR)) {
+        return "PWM";
+    } else if (ARMING_FLAG(ARMING_DISABLED_OOM)) {
+        return "MEM";
+    } else if (ARMING_FLAG(ARMING_DISABLED_SYSTEM_OVERLOADED)) {
+        return "OVL";
+    } else if (ARMING_FLAG(ARMING_DISABLED_ARM_SWITCH)) {
+        return "SW";
+    } else if (ARMING_FLAG(ARMING_DISABLED_CLI)) {
+        return "CLI";
+    } else if (ARMING_FLAG(ARMING_DISABLED_CMS_MENU | ARMING_DISABLED_OSD_MENU)) {
+        return "MNU";
+    } else if (ARMING_FLAG(ARMING_DISABLED_SENSORS_CALIBRATING)) {
+        return "CAL";
+    } else if (ARMING_FLAG(ARMING_DISABLED_ACCELEROMETER_NOT_CALIBRATED)) {
+        return "ACC";
+    } else if (ARMING_FLAG(ARMING_DISABLED_COMPASS_NOT_CALIBRATED)) {
+        return "MAG";
+    } else if (ARMING_FLAG(ARMING_DISABLED_NOT_LEVEL)) {
+        return "LVL";
+    } else if (ARMING_FLAG(ARMING_DISABLED_NAVIGATION_UNSAFE)) {
+        return "NAV";
+#ifdef USE_GEOZONE
+    } else if (ARMING_FLAG(ARMING_DISABLED_GEOZONE)) {
+        return "GEO";
+#endif
+    } else if (ARMING_FLAG(ARMING_DISABLED_THROTTLE)) {
+        return "THR";
+    } else if (ARMING_FLAG(ARMING_DISABLED_ROLLPITCH_NOT_CENTERED)) {
+        return "STK";
+    } else if (ARMING_FLAG(ARMING_DISABLED_SERVO_AUTOTRIM)) {
+        return "TRM";
+    } else if (ARMING_FLAG(ARMING_DISABLED_NO_PREARM)) {
+        return "PRE";
+    } else if (ARMING_FLAG(ARMING_DISABLED_DSHOT_BEEPER)) {
+        return "DSB";
+    } else if (ARMING_FLAG(ARMING_DISABLED_LANDING_DETECTED)) {
+        return "LND";
+    }
+#ifdef USE_GPS
+    if (feature(FEATURE_GPS) && navConfig()->general.flags.extra_arming_safety && (!STATE(GPS_FIX) || !STATE(GPS_FIX_HOME))) {
+        return "GPS";
+    }
+#endif
+    return isArmingDisabled() ? "ERR" : NULL;
+}
+
 static void crsfFrameFlightMode(sbuf_t *dst)
 {
     // write zero for frame length, since we don't know it yet
@@ -536,11 +593,12 @@ static void crsfFrameFlightMode(sbuf_t *dst)
             flightMode = "ANGH";
         }
 
-        bool armingWarning = isArmingDisabled();
-#ifdef USE_GPS
-        armingWarning |= feature(FEATURE_GPS) && navConfig()->general.flags.extra_arming_safety && (!STATE(GPS_FIX) || !STATE(GPS_FIX_HOME));
-#endif
-        snprintf(disarmedFlightMode, sizeof(disarmedFlightMode), "%s%c", flightMode, armingWarning ? '!' : '*');
+        const char *armingDisabledReasonCode = crsfArmingDisabledReasonCode();
+        if (armingDisabledReasonCode) {
+            snprintf(disarmedFlightMode, sizeof(disarmedFlightMode), "!%s", armingDisabledReasonCode);
+        } else {
+            snprintf(disarmedFlightMode, sizeof(disarmedFlightMode), "%s*", flightMode);
+        }
         flightMode = disarmedFlightMode;
     }
 

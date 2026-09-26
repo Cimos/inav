@@ -17,6 +17,7 @@
 
 #include <stdbool.h>
 #include <stdint.h>
+#include <stdio.h>
 #include <string.h>
 
 #include "platform.h"
@@ -458,18 +459,17 @@ char[]      Flight mode ( Null­terminated string )
 */
 static void crsfFrameFlightMode(sbuf_t *dst)
 {
-    // just do "OK" for the moment as a placeholder
     // write zero for frame length, since we don't know it yet
     uint8_t *lengthPtr = sbufPtr(dst);
     sbufWriteU8(dst, 0);
     crsfSerialize8(dst, CRSF_FRAMETYPE_FLIGHT_MODE);
 
     static uint8_t hrstSent = 0;
+    static char disarmedFlightMode[8];
 
     // use same logic as OSD, so telemetry displays same flight text as OSD when armed
-    const char *flightMode = "OK";
+    const char *flightMode = "ACRO";
     if (ARMING_FLAG(ARMED)) {
-        flightMode = "ACRO";
 #ifdef USE_FW_AUTOLAND
         if (FLIGHT_MODE(NAV_FW_AUTOLAND)) {
             flightMode = "LAND";
@@ -509,12 +509,39 @@ static void crsfFrameFlightMode(sbuf_t *dst)
         } else if (FLIGHT_MODE(ANGLEHOLD_MODE)) {
             flightMode = "ANGH";
         }
+    } else if (FLIGHT_MODE(FAILSAFE_MODE)) {
+        flightMode = "!FS!";
+    } else {
+        if (IS_RC_MODE_ACTIVE(BOXMANUAL)) {
+            flightMode = "MANU";
+        } else if (IS_RC_MODE_ACTIVE(BOXNAVRTH)) {
+            flightMode = "RTH";
+        } else if (IS_RC_MODE_ACTIVE(BOXNAVPOSHOLD) && STATE(AIRPLANE)) {
+            flightMode = "LOTR";
+        } else if (IS_RC_MODE_ACTIVE(BOXNAVPOSHOLD)) {
+            flightMode = "HOLD";
+        } else if (IS_RC_MODE_ACTIVE(BOXNAVCRUISE) || (IS_RC_MODE_ACTIVE(BOXNAVCOURSEHOLD) && IS_RC_MODE_ACTIVE(BOXNAVALTHOLD))) {
+            flightMode = "CRUZ";
+        } else if (IS_RC_MODE_ACTIVE(BOXNAVCOURSEHOLD)) {
+            flightMode = "CRSH";
+        } else if (IS_RC_MODE_ACTIVE(BOXNAVWP)) {
+            flightMode = "WP";
+        } else if (IS_RC_MODE_ACTIVE(BOXNAVALTHOLD)) {
+            flightMode = "AH";
+        } else if (IS_RC_MODE_ACTIVE(BOXANGLE)) {
+            flightMode = "ANGL";
+        } else if (IS_RC_MODE_ACTIVE(BOXHORIZON)) {
+            flightMode = "HOR";
+        } else if (IS_RC_MODE_ACTIVE(BOXANGLEHOLD)) {
+            flightMode = "ANGH";
+        }
+
+        bool armingWarning = isArmingDisabled();
 #ifdef USE_GPS
-    } else if (feature(FEATURE_GPS) && navConfig()->general.flags.extra_arming_safety && (!STATE(GPS_FIX) || !STATE(GPS_FIX_HOME))) {
-        flightMode = "WAIT"; // Waiting for GPS lock
+        armingWarning |= feature(FEATURE_GPS) && navConfig()->general.flags.extra_arming_safety && (!STATE(GPS_FIX) || !STATE(GPS_FIX_HOME));
 #endif
-    } else if (isArmingDisabled()) {
-        flightMode = "!ERR";
+        snprintf(disarmedFlightMode, sizeof(disarmedFlightMode), "%s%c", flightMode, armingWarning ? '!' : '*');
+        flightMode = disarmedFlightMode;
     }
 
     if (!IS_RC_MODE_ACTIVE(BOXHOMERESET) && hrstSent > 0)

@@ -36,15 +36,18 @@ BUSDEV_REGISTER_SPI_TAG(busdev_mpu6500_2, DEVHW_MPU6500, MPU6500_2_SPI_BUS, MPU6
 
 
 timerHardware_t timerHardware[] = {
-    DEF_TIM(TIM8, CH3, PC8, TIM_USE_OUTPUT_AUTO, 0, 0), // S1  DMA2 S4
-    DEF_TIM(TIM8, CH1, PC6, TIM_USE_OUTPUT_AUTO, 0, 1), // S2  DMA2 S2
-    DEF_TIM(TIM8, CH4, PC9, TIM_USE_OUTPUT_AUTO, 0, 0), // S3  DMA2 S7
-    DEF_TIM(TIM8, CH2, PC7, TIM_USE_OUTPUT_AUTO, 0, 0), // S4  DMA2 S3
-    DEF_TIM(TIM4, CH1, PB6, TIM_USE_OUTPUT_AUTO, 0, 0), // S5  DMA1 S0
-    DEF_TIM(TIM4, CH2, PB7, TIM_USE_OUTPUT_AUTO, 0, 0), // S6  DMA1 S3
-    DEF_TIM(TIM3, CH4, PB1, TIM_USE_OUTPUT_AUTO, 0, 0), // S7  DMA1 S2
-    DEF_TIM(TIM3, CH3, PB0, TIM_USE_OUTPUT_AUTO, 0, 0), // S8  DMA1 S7
-    DEF_TIM(TIM2, CH2, PA1, TIM_USE_LED, 0, 0),         // LED DMA1 S6
+    // INAV assigns motor/servo per timer, not per pad. S1 sits alone on TIM3 so
+    // it can be the single motor of a wing while S2-S8 stay servos. S7/S8 share
+    // a DMA stream (TIM1 N-channels), which only matters for DShot on both.
+    DEF_TIM(TIM3, CH3,  PC8, TIM_USE_OUTPUT_AUTO, 0, 0), // S1  TIM3  DMA1 S7
+    DEF_TIM(TIM8, CH1,  PC6, TIM_USE_OUTPUT_AUTO, 0, 0), // S2  TIM8  DMA2 S2
+    DEF_TIM(TIM8, CH4,  PC9, TIM_USE_OUTPUT_AUTO, 0, 0), // S3  TIM8  DMA2 S7
+    DEF_TIM(TIM8, CH2,  PC7, TIM_USE_OUTPUT_AUTO, 0, 0), // S4  TIM8  DMA2 S3
+    DEF_TIM(TIM4, CH1,  PB6, TIM_USE_OUTPUT_AUTO, 0, 0), // S5  TIM4  DMA1 S0
+    DEF_TIM(TIM4, CH2,  PB7, TIM_USE_OUTPUT_AUTO, 0, 0), // S6  TIM4  DMA1 S3
+    DEF_TIM(TIM1, CH3N, PB1, TIM_USE_OUTPUT_AUTO, 0, 0), // S7  TIM1  DMA2 S6
+    DEF_TIM(TIM1, CH2N, PB0, TIM_USE_OUTPUT_AUTO, 0, 0), // S8  TIM1  DMA2 S6
+    DEF_TIM(TIM2, CH2,  PA1, TIM_USE_LED, 0, 0),         // LED TIM2  DMA1 S6
 };
 
 const int timerHardwareCount = sizeof(timerHardware) / sizeof(timerHardware[0]);
